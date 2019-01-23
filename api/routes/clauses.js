@@ -34,7 +34,7 @@ router.get('/:clauseId', (req, res, next) => {
   Clause.findById(id)
   .exec()
   .then(doc => console.log(doc))
-  .cach();
+  .cach(err => console.log(err));
 
   if (id === 'special') {
     res.status(200).json({
