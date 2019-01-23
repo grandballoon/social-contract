@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+
+const Clause = require('../models/clause')
 
 router.get('/', (req, res, next) => {
   res.status(200).json({
@@ -8,18 +11,30 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
-  const clause = {
+
+
+  const clause = new Clause({
+    _id: new mongoose.Types.ObjectId(),
     content: req.body.content
-  }
+  });
+
+  clause.save().then(result => {
+    console.log(result)
+  })
+  .catch(err => console.log(err));
 
   res.status(200).json({
     message: 'handling POST requests to /clauses',
-    content: clause.content
+    content: clause
   });
 });
 
 router.get('/:clauseId', (req, res, next) => {
   const id = req.params.clauseId;
+  Clause.findById(id)
+  .exec()
+  .then(doc => console.log(doc))
+  .cach();
 
   if (id === 'special') {
     res.status(200).json({

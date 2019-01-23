@@ -2,9 +2,13 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const body = require('body-parser');
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 const clauseRoutes = require('./api/routes/clauses')
 const userRoutes = require('./api/routes/users')
+
+mongoose.connect('mongodb+srv://Conley:' + process.env.MONGO_ATLAS_PW + '@node-social-contract-hsx7s.mongodb.net/test?retryWrites=true', {useNewUrlParser: true});
 
 app.use(morgan('dev'));
 app.use(body.urlencoded({extended: false}));
