@@ -5,13 +5,20 @@ const mongoose = require('mongoose');
 const Clause = require('../models/clause')
 
 router.get('/', (req, res, next) => {
-  res.status(200).json({
-    message: 'handling GET requests to /clauses'
-  });
+  Clause.find()
+  .exec()
+  .then(clauses => {
+    console.log(clauses)
+    res.status(200).json(clauses)
+  })
+  .catch(err => {
+    res.status(500).json({
+      error: err
+    });
+  })
 });
 
 router.post('/', (req, res, next) => {
-
 
   const clause = new Clause({
     _id: new mongoose.Types.ObjectId(),
@@ -20,12 +27,22 @@ router.post('/', (req, res, next) => {
 
   clause.save().then(result => {
     console.log(result)
-  })
-  .catch(err => console.log(err));
+    if (result) {
+      res.status(200).json({
+        message: 'handling POST requests to /clauses',
+        clause: result
+      })
+    } else {
+      res.status(404).json({
+        message: "that clause doesn't exist"
+      })
+    }
 
-  res.status(200).json({
-    message: 'handling POST requests to /clauses',
-    content: clause
+  })
+  .catch(err => {console.log(err)
+    res.status(500).json({
+      error: err
+    })
   });
 });
 
@@ -33,20 +50,13 @@ router.get('/:clauseId', (req, res, next) => {
   const id = req.params.clauseId;
   Clause.findById(id)
   .exec()
-  .then(doc => console.log(doc))
-  .cach(err => console.log(err));
+  .then(doc => {console.log(doc)
+  res.status(200).json(doc)})
+  .catch(err => {console.log(err)
+  res.status(500).json({error: err})
+  });
 
-  if (id === 'special') {
-    res.status(200).json({
-      message: "you discovered the special ID",
-      id: id
 
-    });
-  } else {
-    res.status(200).json({
-      message: "you passed an ID"
-    });
-  }
 });
 
 router.patch('/:clauseId', (req, res, next) => {
@@ -56,8 +66,17 @@ router.patch('/:clauseId', (req, res, next) => {
 });
 
 router.delete('/:clauseId', (req, res, next) => {
-  res.status(200).json({
-    message: "deleted clause"
+  const id = req.params.clauseId;
+  Clause.remove({_id: id})
+  .exec()
+  .then(result => {
+    result.status(200).json(result);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({
+      error: err
+    })
   });
 });
 
