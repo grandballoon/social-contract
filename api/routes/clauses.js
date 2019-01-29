@@ -6,10 +6,24 @@ const Clause = require('../models/clause')
 
 router.get('/', (req, res, next) => {
   Clause.find()
+  .select('_id content')
   .exec()
-  .then(clauses => {
-    console.log(clauses)
-    res.status(200).json(clauses)
+  .then(resp => {
+    const docs = {
+      count: resp.length,
+      clauses: resp.map(el => {
+        return {
+          content: el.content,
+          _id: el._id,
+          request: {
+            type: 'GET',
+            url: 'http://localhost:3000/clauses' + el._id
+          }
+        }
+      })
+    };
+
+    res.status(200).json(docs)
   })
   .catch(err => {
     res.status(500).json({
@@ -25,12 +39,19 @@ router.post('/', (req, res, next) => {
     content: req.body.content
   });
 
-  clause.save().then(result => {
-    console.log(result)
+  clause.save().
+  then(result => {
     if (result) {
-      res.status(200).json({
-        message: 'handling POST requests to /clauses',
-        clause: result
+      res.status(201).json({
+        message: 'created clause successfully',
+        newClause: {
+          content: result.content,
+          _id: result._id,
+          request: {
+            type: 'GET',
+            url: 'http://localhost:3000/clauses' + result._id
+          }
+        }
       })
     } else {
       res.status(404).json({
@@ -60,8 +81,21 @@ router.get('/:clauseId', (req, res, next) => {
 });
 
 router.patch('/:clauseId', (req, res, next) => {
-  res.status(200).json({
-    message: "updated clause"
+  const id = req.params.clauseId;
+  const updateOps = {};
+
+  for (const ops of req.body) {
+    updateOps[ops.propName] = ops.value;
+  }
+
+  Clause.update({_id: id}, {$set: updateOps}).exec()
+  .then(result => {
+    console.log(result);
+    res.status(200).json(result);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({error: err});
   });
 });
 
@@ -70,7 +104,7 @@ router.delete('/:clauseId', (req, res, next) => {
   Clause.remove({_id: id})
   .exec()
   .then(result => {
-    result.status(200).json(result);
+    res.status(200).json(result);
   })
   .catch(err => {
     console.log(err);
